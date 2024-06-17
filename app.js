@@ -40,7 +40,7 @@ app.use((err, req, res, next) => {
 
 mongoose
   .connect(
-    'mongodb+srv://joel-udemy:XrjvPwfpzkEDwjPL@cluster0.ymntqea.mongodb.net/places?retryWrites=true&w=majority&appName=Cluster0'
+    'mongodb+srv://joel-udemy:XrjvPwfpzkEDwjPL@cluster0.ymntqea.mongodb.net/placesApp?retryWrites=true&w=majority&appName=Cluster0'
   )
   .then(() => {
     const PORT = 5001

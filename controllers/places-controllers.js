@@ -3,7 +3,7 @@ const Place = require('../models/place')
 const getCoordinates = require('../util/location')
 const { validationResult } = require('express-validator')
 
-const uuid = require('uuid')
+// const uuid = require('uuid')
 
 const PLACES = [
   {
@@ -51,28 +51,35 @@ module.exports = {
     res.json({ place })
   },
   async POST(req, res, next) {
-    const errors = validationResult(req)
-
-    if (!errors.isEmpty()) {
-      next(new HttpError('Invalid inputs passed, please check your data', 422))
+    if (!validationResult(req).isEmpty()) {
+      return next(
+        new HttpError('Invalid inputs passed, please check your data', 422)
+      )
     }
-    const { title, description, address, creator } = req.body
+
+    const { title, description, image, address, creator } = req.body
+
     let location
     try {
       location = await getCoordinates(address)
     } catch (error) {
-      return next(error)
+      return next(new HttpError('Fetching coordinates failed', 500))
     }
-    const createdPlace = {
-      id: uuid.v4(),
-      title,
-      description,
-      location,
-      address,
-      creator,
+
+    try {
+      const newPlace = new Place({
+        title,
+        description,
+        image,
+        address,
+        location,
+        creator,
+      })
+      await newPlace.save()
+      return res.status(201).json({ newPlace })
+    } catch (error) {
+      return next(new HttpError('place creation failed', 500))
     }
-    PLACES.push(createdPlace)
-    res.status(201).json({ place: createdPlace })
   },
   PATCH(req, res, next) {
     const errors = validationResult(req)

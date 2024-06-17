@@ -1,10 +1,6 @@
 const { ObjectId } = require('mongodb')
 const mongoose = require('mongoose')
 
-const locationSchema = new mongoose.Schema({
-  lat: { type: Number, required: true },
-  lng: { type: Number, required: true },
-})
 const placeSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -23,9 +19,12 @@ const placeSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  location: locationSchema,
+  location: {
+    lat: { type: Number, required: true },
+    lng: { type: Number, required: true },
+  },
   creator: {
-    type: ObjectId,
+    type: String,
     required: true,
   },
 })
