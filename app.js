@@ -1,12 +1,9 @@
 const express = require('express')
+const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
 const HttpError = require('./models/http-error')
+
 // const helmet = require('helmet')
-
-const app = express()
-const placesRoutes = require('./routes/places-routes')
-const usersRoutes = require('./routes/users-routes')
-
 // app.use(
 //   helmet.contentSecurityPolicy({
 //     directives: {
@@ -15,6 +12,10 @@ const usersRoutes = require('./routes/users-routes')
 //     },
 //   })
 // )
+
+const app = express()
+const placesRoutes = require('./routes/places-routes')
+const usersRoutes = require('./routes/users-routes')
 
 app.use(bodyParser.json())
 
@@ -37,5 +38,15 @@ app.use((err, req, res, next) => {
     .json({ message: err.message || 'unknown error occurred' })
 })
 
-const PORT = 5001
-app.listen(PORT, () => console.log(`Server is running on port ${PORT}`))
+mongoose
+  .connect(
+    'mongodb+srv://joel-udemy:XrjvPwfpzkEDwjPL@cluster0.ymntqea.mongodb.net/places?retryWrites=true&w=majority&appName=Cluster0'
+  )
+  .then(() => {
+    const PORT = 5001
+    app.listen(PORT, () => console.log(`Server is running on port ${PORT}`))
+  })
+  .catch((err) => {
+    console.log('connection failed')
+    console.error(err)
+  })

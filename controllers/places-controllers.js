@@ -1,4 +1,5 @@
 const HttpError = require('../models/http-error')
+const Place = require('../models/place')
 const getCoordinates = require('../util/location')
 const { validationResult } = require('express-validator')
 
