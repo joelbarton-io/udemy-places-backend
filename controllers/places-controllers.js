@@ -43,12 +43,21 @@ module.exports = {
       places,
     })
   },
-  GET(req, res, next) {
-    const place = PLACES.find((place) => place.id === req.params.placeid)
+  async GET(req, res, next) {
+    const { placeid } = req.params
 
-    if (!place) throw new HttpError('Place not found', 404)
-
-    res.json({ place })
+    try {
+      const place = await Place.findById(placeid)
+      if (!place) {
+        return next(new HttpError('Place not found', 404))
+      }
+      return res.json({ place: place.toObject({ getters: true }) })
+    } catch (excepshun) {
+      return next(
+        new HttpError('Something went wrong, failed to find place by id'),
+        500
+      )
+    }
   },
   async POST(req, res, next) {
     if (!validationResult(req).isEmpty()) {
