@@ -4,7 +4,7 @@ const { check } = require('express-validator')
 
 const {
   ALL,
-  ALLBYUSER,
+  GETBYUSERID,
   GET,
   POST,
   PATCH,
@@ -21,7 +21,7 @@ router.post(
   ],
   POST
 )
-router.get('/user/:userid', ALLBYUSER)
+router.get('/user/:userid', GETBYUSERID)
 router.get('/:placeid', GET)
 router.patch(
   '/:placeid',
