@@ -1,4 +1,7 @@
 const HttpError = require('../models/http-error')
+const getCoordinates = require('../util/location')
+const { validationResult } = require('express-validator')
+
 const uuid = require('uuid')
 
 const PLACES = [
@@ -26,12 +29,9 @@ const PLACES = [
 
 module.exports = {
   ALL(req, res, next) {
-    console.log('ALL')
     res.json(PLACES)
   },
   ALLBYUSER(req, res, next) {
-    console.log('ALL BY USER')
-
     const places = PLACES.filter(({ creator }) => creator === req.params.userid)
 
     if (!places.length)
@@ -43,37 +43,64 @@ module.exports = {
     })
   },
   GET(req, res, next) {
-    console.log('GET')
     const place = PLACES.find((place) => place.id === req.params.placeid)
 
     if (!place) throw new HttpError('Place not found', 404)
 
     res.json({ place })
   },
-  CREATE(req, res, next) {
-    console.log('CREATE')
-    const { title, description, coordinates, address, creator } = req.body
+  async POST(req, res, next) {
+    const errors = validationResult(req)
+
+    if (!errors.isEmpty()) {
+      next(new HttpError('Invalid inputs passed, please check your data', 422))
+    }
+    const { title, description, address, creator } = req.body
+    let location
+    try {
+      location = await getCoordinates(address)
+    } catch (error) {
+      return next(error)
+    }
     const createdPlace = {
       id: uuid.v4(),
       title,
       description,
-      location: coordinates,
+      location,
       address,
       creator,
     }
-    console.log(createdPlace)
     PLACES.push(createdPlace)
     res.status(201).json({ place: createdPlace })
   },
   PATCH(req, res, next) {
-    console.log('PATCH')
-    const data = {
-      patchedPlace: PLACES.find((place) => place.id === req.params.placeid),
+    const errors = validationResult(req)
+
+    if (!errors.isEmpty()) {
+      throw new HttpError('Invalid inputs passed, please check your data', 422)
     }
-    res.status(200).json(data)
+    const { title, description } = req.body
+
+    const idx = PLACES.findIndex((place) => place.id === req.params.placeid)
+    if (idx === -1) throw new HttpError('Place to update not found', 404)
+
+    const updatedPlace = {
+      ...PLACES[idx],
+      title,
+      description,
+    }
+
+    PLACES[idx] = updatedPlace
+
+    res.status(200).json({ place: updatedPlace })
   },
   DELETE(req, res, next) {
-    console.log('DELETE')
-    res.status(204).end()
+    const idx = PLACES.findIndex((place) => place.id === req.params.placeid)
+
+    if (idx === -1) throw new HttpError('Not deleted, place not found', 404)
+
+    PLACES.splice(idx, 1)
+
+    res.status(204).json({ message: 'Deleted place' })
   },
 }
