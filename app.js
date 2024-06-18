@@ -3,16 +3,6 @@ const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
 const HttpError = require('./models/http-error')
 
-// const helmet = require('helmet')
-// app.use(
-//   helmet.contentSecurityPolicy({
-//     directives: {
-//       defaultSrc: ["'self'", 'http://localhost:5001'],
-//       // other directives...
-//     },
-//   })
-// )
-
 const app = express()
 const placesRoutes = require('./routes/places-routes')
 const usersRoutes = require('./routes/users-routes')

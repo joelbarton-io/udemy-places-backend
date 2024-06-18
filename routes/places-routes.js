@@ -10,7 +10,7 @@ const {
   PATCH,
   DELETE,
 } = require('../controllers/places-controllers')
-//  title, description, coordinates, address, creator
+
 router.get('/', ALL)
 router.post(
   '/',

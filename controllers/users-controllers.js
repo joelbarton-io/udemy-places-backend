@@ -1,63 +1,89 @@
-const uuid = require('uuid')
 const { validationResult } = require('express-validator')
+const User = require('../models/user')
 const HttpError = require('../models/http-error')
-const USERS = [
-  {
-    id: 'u1',
-    name: 'Max Schwarz',
-    email: 'test@test.com',
-    password: 'test',
-  },
-  {
-    id: 'u2',
-    name: 'Mark Dong',
-    email: 'test1@test.com',
-    password: 'test',
-  },
-]
 
 module.exports = {
-  GET(req, res, next) {
-    res.status(200).json({ users: [...USERS] })
-  },
-  SIGNUP(req, res, next) {
-    const errors = validationResult(req)
+  async GET(req, res, next) {
+    try {
+      const allUsers = await User.find({}, '-password')
 
-    if (!errors.isEmpty()) {
-      throw new HttpError('Invalid inputs, check your data', 422)
+      if (!allUsers || !allUsers.length) {
+        return next(new HttpError('No users found', 404))
+      }
+
+      return res.status(200).json({
+        users: allUsers.map((user) => user.toObject({ getters: true })),
+      })
+      console.log({
+        message: 'this message should never get logged'.toUpperCase(),
+      })
+    } catch (excepshun) {
+      return next(new HttpError(excepshun._message, 500))
+    }
+  },
+  async SIGNUP(req, res, next) {
+    if (!validationResult(req).isEmpty()) {
+      return next(new HttpError('Invalid inputs, check your data', 422))
     }
     const { name, email, password } = req.body
 
-    // assuming input is valid & a unique email...
-    if (USERS.some((user) => user.email === email))
-      throw new HttpError(
-        'That email is already in use by another user account',
-        422
-      )
+    try {
+      const existingUser = await User.findOne({ email })
 
-    const newUser = { name, email, password, id: uuid.v4() }
+      // this should eventually pass existing user info into newly rendered `login` form input fields
+      if (existingUser) {
+        return next(
+          new HttpError(
+            'existing user email detected, please login instead',
+            422
+          )
+        )
+      }
 
-    USERS.push(newUser)
-    res.status(201).json({ user: newUser })
-  },
-  LOGIN(req, res, next) {
-    const errors = validationResult(req)
+      const newUser = new User({
+        name,
+        email,
+        password,
+        image: 'https://www.gravatar.com/avatar/',
+        places: [],
+      })
 
-    if (!errors.isEmpty()) {
-      throw new HttpError('Invalid inputs, check your data', 422)
+      await newUser.save()
+      return res.status(201).json({ user: newUser.toObject({ getters: true }) })
+    } catch (excepshun) {
+      console.log({ here: excepshun })
+      return next(new HttpError(excepshun._message, 500))
     }
-
+  },
+  async LOGIN(req, res, next) {
+    if (!validationResult(req).isEmpty()) {
+      return next(new HttpError('Invalid inputs, double check your data', 422))
+    }
     const { email, password } = req.body
 
-    const existingUser = USERS.find((user) => user.email === email)
+    try {
+      const existingUser = await User.findOne({ email })
 
-    if (!existingUser || existingUser.password !== password)
-      throw new HttpError(
-        'Incorrect Login credentials or non-existing user',
-        401
-      )
+      if (!existingUser) {
+        return next(
+          new HttpError(
+            'the supplied email is not associated with an existing user',
+            422
+          )
+        )
+      }
 
-    // something "happens" for login on the backend with token auth...
-    res.status(200).json({ message: 'successful login' })
+      // unhash the stored password on db and compare with request.body.password...
+      if (existingUser.toObject({ getters: true }).password !== password) {
+        return next(
+          new HttpError('incorrect password for existing user email', 401)
+        )
+      }
+
+      // something "happens" for login on the backend with token auth...
+      return res.status(200).json({ message: 'successful login' })
+    } catch (excepshun) {
+      return next(new HttpError(excepshun._message, 500))
+    }
   },
 }
