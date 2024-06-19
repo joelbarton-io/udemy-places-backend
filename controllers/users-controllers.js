@@ -20,10 +20,8 @@ module.exports = {
   },
   async SIGNUP(req, res, next) {
     const errors = validationResult(req)
-    console.log({ count: JSON.parse(JSON.stringify(errors.errors)) })
+
     if (!errors.isEmpty()) {
-      const { name, email, password } = req.body
-      console.log({ data: { name, email, password } })
       return next(new HttpError('Invalid inputs, check your data', 422))
     }
     const { name, email, password } = req.body
@@ -52,7 +50,6 @@ module.exports = {
       await newUser.save()
       return res.status(201).json({ user: newUser.toObject({ getters: true }) })
     } catch (excepshun) {
-      console.log({ here: excepshun })
       return next(new HttpError(excepshun._message, 500))
     }
   },
