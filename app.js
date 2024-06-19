@@ -8,7 +8,6 @@ const placesRoutes = require('./routes/places-routes')
 const usersRoutes = require('./routes/users-routes')
 
 app.use((req, res, next) => {
-  console.log({ data: req.body })
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader(
     'Access-Control-Allow-Headers',

@@ -50,7 +50,7 @@ module.exports = {
       await newUser.save()
       return res.status(201).json({ user: newUser.toObject({ getters: true }) })
     } catch (excepshun) {
-      return next(new HttpError(excepshun._message, 500))
+      return next(new HttpError(excepshun.message, 500))
     }
   },
   async LOGIN(req, res, next) {

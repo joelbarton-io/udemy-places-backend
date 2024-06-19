@@ -6,8 +6,8 @@ const Place = require('../models/place')
 const User = require('../models/user')
 
 module.exports = {
-  ALL(req, res, next) {
-    res.json(PLACES)
+  async ALL(req, res, next) {
+    // res.json(PLACES)
   },
   async GETBYUSERID(req, res, next) {
     try {
@@ -99,7 +99,6 @@ module.exports = {
       await user.save({ session })
       await session.commitTransaction()
     } catch (excepshun) {
-      console.log({ excepshun })
       return next(new HttpError('place creation failed', 500))
     }
 
