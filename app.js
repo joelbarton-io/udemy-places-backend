@@ -7,6 +7,17 @@ const app = express()
 const placesRoutes = require('./routes/places-routes')
 const usersRoutes = require('./routes/users-routes')
 
+app.use((req, res, next) => {
+  console.log({ data: req.body })
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+  )
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE')
+  next()
+})
+
 app.use(bodyParser.json())
 
 app.use((req, res, next) => {
@@ -30,7 +41,7 @@ app.use((err, req, res, next) => {
 
 mongoose
   .connect(
-    'mongodb+srv://joel-udemy:XrjvPwfpzkEDwjPL@cluster0.ymntqea.mongodb.net/placesApp?retryWrites=true&w=majority&appName=Cluster0'
+    'mongodb+srv://joel-udemy:XrjvPwfpzkEDwjPL@cluster0.ymntqea.mongodb.net/mernApp?retryWrites=true&w=majority&appName=Cluster0'
   )
   .then(() => {
     const PORT = 5001

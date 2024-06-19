@@ -14,15 +14,16 @@ module.exports = {
       return res.status(200).json({
         users: allUsers.map((user) => user.toObject({ getters: true })),
       })
-      console.log({
-        message: 'this message should never get logged'.toUpperCase(),
-      })
     } catch (excepshun) {
       return next(new HttpError(excepshun._message, 500))
     }
   },
   async SIGNUP(req, res, next) {
-    if (!validationResult(req).isEmpty()) {
+    const errors = validationResult(req)
+    console.log({ count: JSON.parse(JSON.stringify(errors.errors)) })
+    if (!errors.isEmpty()) {
+      const { name, email, password } = req.body
+      console.log({ data: { name, email, password } })
       return next(new HttpError('Invalid inputs, check your data', 422))
     }
     const { name, email, password } = req.body
