@@ -61,8 +61,9 @@ module.exports = {
       )
     }
 
-    const { title, description, image, address, creator } = req.body
+    const { title, description, address, creator } = req.body
 
+    console.log('1')
     let location
     try {
       location = await getCoordinates(address)
@@ -73,7 +74,8 @@ module.exports = {
     const newPlace = new Place({
       title,
       description,
-      image,
+      image:
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Empire_State_Building_%28aerial_view%29.jpg/400px-Empire_State_Building_%28aerial_view%29.jpg',
       address,
       location,
       creator,
@@ -81,7 +83,10 @@ module.exports = {
 
     let user
     try {
+      console.log('2')
+
       user = await User.findById(creator)
+      console.log('3')
 
       // if this code triggers an error, it will be caught
       if (!user) {
@@ -93,12 +98,25 @@ module.exports = {
 
     try {
       const session = await mongoose.startSession()
+      console.log('4')
+
       session.startTransaction()
+      console.log('5')
+
+      console.log({ newPlace })
       await newPlace.save({ session })
+      console.log('6')
+
       user.places.push(newPlace)
+      console.log('7')
+
       await user.save({ session })
+      console.log('8')
+
       await session.commitTransaction()
+      console.log('9')
     } catch (excepshun) {
+      console.log({ excepshun, data: excepshun._message })
       return next(new HttpError('place creation failed', 500))
     }
 

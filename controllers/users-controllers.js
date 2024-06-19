@@ -79,7 +79,12 @@ module.exports = {
       }
 
       // something "happens" for login on the backend with token auth...
-      return res.status(200).json({ message: 'successful login' })
+      return res
+        .status(200)
+        .json({
+          message: 'successful login',
+          user: existingUser.toObject({ getters: true }),
+        })
     } catch (excepshun) {
       return next(new HttpError(excepshun._message, 500))
     }
