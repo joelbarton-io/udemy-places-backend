@@ -2,6 +2,7 @@ const express = require('express')
 const { check } = require('express-validator')
 const fileUpload = require('../middleware/file-upload')
 
+const tokenAuth = require('../middleware/token-auth')
 const router = express.Router()
 
 const {
@@ -14,6 +15,9 @@ const {
 } = require('../controllers/places-controllers')
 
 router.get('/', ALL)
+router.get('/user/:userid', GETBYUSERID)
+
+router.use(tokenAuth)
 router.post(
   '/',
   fileUpload.single('image'),
@@ -24,7 +28,6 @@ router.post(
   ],
   POST
 )
-router.get('/user/:userid', GETBYUSERID)
 router.get('/:placeid', GET)
 router.patch(
   '/:placeid',

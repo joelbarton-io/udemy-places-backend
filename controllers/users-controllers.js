@@ -1,3 +1,6 @@
+const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
+
 const { validationResult } = require('express-validator')
 const User = require('../models/user')
 const HttpError = require('../models/http-error')
@@ -26,32 +29,63 @@ module.exports = {
     }
     const { name, email, password } = req.body
 
+    let existingUser
     try {
-      const existingUser = await User.findOne({ email })
-
-      // this should eventually pass existing user info into newly rendered `login` form input fields
-      if (existingUser) {
-        return next(
-          new HttpError(
-            'existing user email detected, please login instead',
-            422
-          )
-        )
-      }
-
-      const newUser = new User({
-        name,
-        email,
-        password,
-        image: req.file.path,
-        places: [],
-      })
-
-      await newUser.save()
-      return res.status(201).json({ user: newUser.toObject({ getters: true }) })
+      existingUser = await User.findOne({ email })
     } catch (excepshun) {
       return next(new HttpError(excepshun.message, 500))
     }
+
+    if (existingUser) {
+      return next(
+        new HttpError('existing user email detected, please login instead', 422)
+      )
+    }
+
+    let hashedPassword
+    try {
+      hashedPassword = await bcrypt.hash(password, 12)
+    } catch (error) {
+      return next(
+        new HttpError(
+          'Could not create user, please try again',
+          error.code || 500
+        )
+      )
+    }
+
+    const newUser = new User({
+      name,
+      email,
+      password: hashedPassword,
+      image: req.file.path,
+      places: [],
+    })
+
+    try {
+      await newUser.save()
+    } catch (error) {
+      return next(
+        new HttpError('signup failed, please try again', error.code || 500)
+      )
+    }
+
+    let token
+
+    try {
+      token = jwt.sign(
+        { userid: newUser.id, email: newUser.email },
+        'supersecret',
+        { expiresIn: '1h' }
+      )
+    } catch (error) {
+      return next(
+        new HttpError('signup failed, please try again', error.code || 500)
+      )
+    }
+    return res
+      .status(201)
+      .json({ userid: newUser.id, email: newUser.email, token })
   },
   async LOGIN(req, res, next) {
     if (!validationResult(req).isEmpty()) {
@@ -59,32 +93,59 @@ module.exports = {
     }
     const { email, password } = req.body
 
+    let existingUser
+
     try {
-      const existingUser = await User.findOne({ email })
-
-      if (!existingUser) {
-        return next(
-          new HttpError(
-            'the supplied email is not associated with an existing user',
-            422
-          )
-        )
-      }
-
-      // unhash the stored password on db and compare with request.body.password...
-      if (existingUser.toObject({ getters: true }).password !== password) {
-        return next(
-          new HttpError('incorrect password for existing user email', 401)
-        )
-      }
-
-      // something "happens" for login on the backend with token auth...
-      return res.status(200).json({
-        message: 'successful login',
-        user: existingUser.toObject({ getters: true }),
-      })
+      existingUser = await User.findOne({ email })
     } catch (excepshun) {
       return next(new HttpError(excepshun._message, 500))
     }
+
+    if (!existingUser) {
+      return next(
+        new HttpError(
+          'the supplied email is not associated with an existing user account',
+          422
+        )
+      )
+    }
+
+    let validPassword = false
+
+    try {
+      validPassword = await bcrypt.compare(password, existingUser.password)
+    } catch (error) {
+      return next(
+        new HttpError(
+          'Could not log you in, please check your credentials and try again',
+          500
+        )
+      )
+    }
+
+    if (!validPassword) {
+      return next(
+        new HttpError('incorrect password for existing user email', 401)
+      )
+    }
+
+    let token
+
+    try {
+      token = jwt.sign(
+        { userid: existingUser.id, email: existingUser.email },
+        'supersecret',
+        { expiresIn: '1h' }
+      )
+    } catch (error) {
+      return next(
+        new HttpError('login failed, please try again', error.code || 500)
+      )
+    }
+
+    // something "happens" for login on the backend with token auth...
+    return res
+      .status(200)
+      .json({ userid: existingUser.id, email: existingUser.email, token })
   },
 }
