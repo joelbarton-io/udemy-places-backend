@@ -1,5 +1,8 @@
 const express = require('express')
 const mongoose = require('mongoose')
+const fs = require('fs')
+const path = require('path')
+
 const bodyParser = require('body-parser')
 const HttpError = require('./models/http-error')
 
@@ -19,6 +22,7 @@ app.use((req, res, next) => {
 
 app.use(bodyParser.json())
 
+app.use('/uploads/images', express.static(path.join('uploads', 'images')))
 app.use((req, res, next) => {
   console.log(req?.method, req?.url, req?.body)
   next()
@@ -32,6 +36,11 @@ app.use((req, res, next) => {
 })
 
 app.use((err, req, res, next) => {
+  if (req.file) {
+    fs.unlink(req.file.path, (err) => {
+      console.log(err)
+    })
+  }
   if (res.headerSent) return next(err)
   res
     .status(err.code || 500)

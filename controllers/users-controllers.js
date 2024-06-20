@@ -43,7 +43,7 @@ module.exports = {
         name,
         email,
         password,
-        image: 'https://www.gravatar.com/avatar/',
+        image: req.file.path,
         places: [],
       })
 
@@ -79,12 +79,10 @@ module.exports = {
       }
 
       // something "happens" for login on the backend with token auth...
-      return res
-        .status(200)
-        .json({
-          message: 'successful login',
-          user: existingUser.toObject({ getters: true }),
-        })
+      return res.status(200).json({
+        message: 'successful login',
+        user: existingUser.toObject({ getters: true }),
+      })
     } catch (excepshun) {
       return next(new HttpError(excepshun._message, 500))
     }
