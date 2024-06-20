@@ -85,7 +85,6 @@ module.exports = {
     try {
       user = await User.findById(creator)
 
-      // if this code triggers an error, it will be caught
       if (!user) {
         return next(new HttpError('Could not find user for provided id', 404))
       }
@@ -95,16 +94,10 @@ module.exports = {
 
     try {
       const session = await mongoose.startSession()
-
       session.startTransaction()
-
-      console.log({ newPlace })
       await newPlace.save({ session })
-
       user.places.push(newPlace)
-
       await user.save({ session })
-
       await session.commitTransaction()
     } catch (excepshun) {
       return next(new HttpError('place creation failed', 500))
@@ -122,6 +115,17 @@ module.exports = {
     }
     const { title, description } = req.body
 
+    return console.log({ userId: req.userTokenData })
+
+    /* 
+    find place to update by id
+
+    get info from req.userTokenData
+
+    ensure the place's creator (a user id) matches the token's info
+
+    then and only then, we can update the place
+    */
     try {
       const updatedPlace = await Place.findByIdAndUpdate(
         req.params.placeid,

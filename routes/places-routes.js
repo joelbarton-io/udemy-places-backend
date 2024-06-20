@@ -16,6 +16,7 @@ const {
 
 router.get('/', ALL)
 router.get('/user/:userid', GETBYUSERID)
+router.get('/:placeid', GET)
 
 router.use(tokenAuth)
 router.post(
@@ -28,7 +29,6 @@ router.post(
   ],
   POST
 )
-router.get('/:placeid', GET)
 router.patch(
   '/:placeid',
   [check('title').notEmpty(), check('description').isLength({ min: 5 })],
