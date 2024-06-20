@@ -1,4 +1,6 @@
 const mongoose = require('mongoose')
+const fs = require('fs')
+
 const { validationResult } = require('express-validator')
 const HttpError = require('../models/http-error')
 const getCoordinates = require('../util/location')
@@ -63,7 +65,6 @@ module.exports = {
 
     const { title, description, address, creator } = req.body
 
-    console.log('1')
     let location
     try {
       location = await getCoordinates(address)
@@ -74,8 +75,7 @@ module.exports = {
     const newPlace = new Place({
       title,
       description,
-      image:
-        'https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Empire_State_Building_%28aerial_view%29.jpg/400px-Empire_State_Building_%28aerial_view%29.jpg',
+      image: req.file.path,
       address,
       location,
       creator,
@@ -83,10 +83,7 @@ module.exports = {
 
     let user
     try {
-      console.log('2')
-
       user = await User.findById(creator)
-      console.log('3')
 
       // if this code triggers an error, it will be caught
       if (!user) {
@@ -98,25 +95,18 @@ module.exports = {
 
     try {
       const session = await mongoose.startSession()
-      console.log('4')
 
       session.startTransaction()
-      console.log('5')
 
       console.log({ newPlace })
       await newPlace.save({ session })
-      console.log('6')
 
       user.places.push(newPlace)
-      console.log('7')
 
       await user.save({ session })
-      console.log('8')
 
       await session.commitTransaction()
-      console.log('9')
     } catch (excepshun) {
-      console.log({ excepshun, data: excepshun._message })
       return next(new HttpError('place creation failed', 500))
     }
 
@@ -152,11 +142,14 @@ module.exports = {
     const { placeid } = req.params
 
     let place
+    let imagePath
     try {
       place = await Place.findById(placeid).populate('creator')
       if (!place) {
         return next(new HttpError('Could not find place to delete', 404))
       }
+
+      imagePath = place.image
 
       if (!(place instanceof mongoose.Document)) {
         return next(new HttpError('Place is not a valid document', 500))
@@ -178,8 +171,6 @@ module.exports = {
       await place.creator.save({ session })
       await session.commitTransaction()
     } catch (excepshun) {
-      console.log({ here: excepshun, place })
-
       return next(
         new HttpError(
           'Something went awry when deleting a place, could not delete',
@@ -187,6 +178,11 @@ module.exports = {
         )
       )
     }
+
+    fs.unlink(imagePath, (err) => {
+      console.log(err)
+    })
+
     return res.status(200).json({ message: 'Deleted place' })
   },
 }
