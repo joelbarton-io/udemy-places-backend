@@ -11,10 +11,10 @@ module.exports = (req, res, next) => {
 
     const { userid, email, password } = jwt.verify(token, 'supersecret')
 
-    req.userTokenData = { userid, email }
+    req.userTokenData = { userid }
     return next()
   } catch (error) {
     console.log({ error, msg: error.stack })
-    return next(new HttpError('Auth failed', 401))
+    return next(new HttpError('Auth failed', 403))
   }
 }

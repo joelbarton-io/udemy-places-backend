@@ -63,8 +63,8 @@ module.exports = {
       )
     }
 
-    const { title, description, address, creator } = req.body
-
+    const creator = req.userTokenData.userId
+    const { title, description, address } = req.body
     let location
     try {
       location = await getCoordinates(address)
@@ -89,6 +89,7 @@ module.exports = {
         return next(new HttpError('Could not find user for provided id', 404))
       }
     } catch (excepshun) {
+      console.log({ excepshun })
       return next(new HttpError('Creating place failed', 500))
     }
 
@@ -115,8 +116,6 @@ module.exports = {
     }
     const { title, description } = req.body
 
-    return console.log({ userId: req.userTokenData })
-
     /* 
     find place to update by id
 
@@ -126,43 +125,69 @@ module.exports = {
 
     then and only then, we can update the place
     */
-    try {
-      const updatedPlace = await Place.findByIdAndUpdate(
-        req.params.placeid,
-        { title, description },
-        { new: true }
-      )
 
-      return res
-        .status(200)
-        .json({ place: updatedPlace.toObject({ getters: true }) })
-    } catch (excepshun) {
+    let place
+    try {
+      place = await Place.findById(req.params.placeid)
+      if (place.creator.toString() !== req.userTokenData.userid) {
+        return next(
+          new HttpError(
+            'Unauthorized update, current user does not own that place!',
+            401
+          )
+        )
+      }
+
+      //   const place = await Place.findByIdAndUpdate(
+      //     req.params.placeid,
+      //     { title, description },
+      //     { new: true }
+      //   )
+
+      //   return res.status(200).json({ place: place.toObject({ getters: true }) })
+    } catch (exception) {
       return next(
         new HttpError('Something failed when trying to update a place', 500)
       )
     }
+
+    try {
+      place.title = title
+      place.description = description
+      const updatedPlace = await place.save()
+      console.log({ updatedPlace })
+    } catch (exception) {
+      console.log({ exception })
+      return next(new HttpError('updating place failed', 500))
+    }
+
+    res.status(200).json({ place: place.toObject({ getters: true }) })
   },
   async DELETE(req, res, next) {
     const { placeid } = req.params
 
     let place
-    let imagePath
     try {
       place = await Place.findById(placeid).populate('creator')
-      if (!place) {
-        return next(new HttpError('Could not find place to delete', 404))
-      }
-
-      imagePath = place.image
-
-      if (!(place instanceof mongoose.Document)) {
-        return next(new HttpError('Place is not a valid document', 500))
-      }
     } catch (excepshun) {
       return next(
         new HttpError(
           'Something went awry when deleting a place, could not delete',
           500
+        )
+      )
+    }
+    if (!place) {
+      return next(new HttpError('Could not find place to delete', 404))
+    }
+
+    const imagePath = place.image
+
+    if (place.creator.id !== req.userTokenData.userid) {
+      return next(
+        new HttpError(
+          'Unauthorized delete, current user does not own that place!',
+          401
         )
       )
     }

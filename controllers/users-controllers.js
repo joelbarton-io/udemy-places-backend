@@ -105,7 +105,7 @@ module.exports = {
       return next(
         new HttpError(
           'the supplied email is not associated with an existing user account',
-          422
+          403
         )
       )
     }
@@ -125,7 +125,7 @@ module.exports = {
 
     if (!validPassword) {
       return next(
-        new HttpError('incorrect password for existing user email', 401)
+        new HttpError('incorrect password for existing user email', 403)
       )
     }
 
