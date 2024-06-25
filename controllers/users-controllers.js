@@ -75,7 +75,7 @@ module.exports = {
     try {
       token = jwt.sign(
         { userid: newUser.id, email: newUser.email },
-        'supersecret',
+        process.env.JWT_KEY,
         { expiresIn: '1h' }
       )
     } catch (error) {
@@ -134,7 +134,7 @@ module.exports = {
     try {
       token = jwt.sign(
         { userid: existingUser.id, email: existingUser.email },
-        'supersecret',
+        process.env.JWT_KEY,
         { expiresIn: '1h' }
       )
     } catch (error) {

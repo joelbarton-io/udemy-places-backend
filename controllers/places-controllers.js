@@ -63,7 +63,8 @@ module.exports = {
       )
     }
 
-    const creator = req.userTokenData.userId
+    const creator = req.userTokenData.userid
+
     const { title, description, address } = req.body
     let location
     try {
@@ -84,7 +85,6 @@ module.exports = {
     let user
     try {
       user = await User.findById(creator)
-
       if (!user) {
         return next(new HttpError('Could not find user for provided id', 404))
       }

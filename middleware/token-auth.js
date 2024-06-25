@@ -9,7 +9,7 @@ module.exports = (req, res, next) => {
     console.log({ token, headers: req.headers }, 'HELLO WORLD')
     if (!token) throw new Error()
 
-    const { userid, email, password } = jwt.verify(token, 'supersecret')
+    const { userid, email, password } = jwt.verify(token, process.env.JWT_KEY)
 
     req.userTokenData = { userid }
     return next()

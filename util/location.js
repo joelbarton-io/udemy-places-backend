@@ -1,10 +1,10 @@
 const HttpError = require('../models/http-error')
-const API_KEY = 'AIzaSyB8l4_t-7wN8UNYWpuJTYyM2TNFaudxCek'
+// const API_KEY = 'AIzaSyB8l4_t-7wN8UNYWpuJTYyM2TNFaudxCek'
 
 async function getCoordinates(rawAddress) {
   const { default: fetch } = await import('node-fetch')
   const address = encodeURI(rawAddress)
-  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${API_KEY}`
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${process.env.GOOGLE_API_KEY}`
 
   const res = await fetch(url, {
     headers: {
@@ -20,7 +20,7 @@ async function getCoordinates(rawAddress) {
       422
     )
   }
-  console.log({location: data.results.at(0).geometry.location});
+  console.log({ location: data.results.at(0).geometry.location })
   return data.results.at(0).geometry.location
 }
 
