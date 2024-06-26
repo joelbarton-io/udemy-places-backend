@@ -14,10 +14,16 @@ const usersRoutes = require('./routes/users-routes')
 app.use(setCorsHeaders)
 app.use(bodyParser.json())
 app.use('/uploads/images', express.static(path.join('uploads', 'images')))
+app.use(express.static(path.join('public')))
+
 app.use(reqLogger)
 app.use('/api/places', placesRoutes)
 app.use('/api/users', usersRoutes)
-app.use(routeNotFound)
+
+app.use((req, res, next) => {
+  res.sendFile(path.resolve(__dirname, 'public', 'index.html'))
+})
+// app.use(routeNotFound)
 app.use(fileUploadError)
 
 mongoose

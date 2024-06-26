@@ -7,6 +7,6 @@ module.exports = (err, req, res, next) => {
   }
   if (res.headerSent) return next(err)
   res
-    .status(err.code || 500)
+    .status(500)
     .json({ message: err.message || 'unknown error occurred' })
 }
