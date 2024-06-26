@@ -1,8 +1,8 @@
 {
   "env": {
+    "DB_PASSWORD": "hxBA3ljSWmNMM9jd",
     "DB_USER": "joel-udemy",
-    "DB_PASSWORD": "XrjvPwfpzkEDwjPL",
-    "DB_NAME": "mernApp",
+    "DB_NAME": "mernApp-prod",
     "GOOGLE_API_KEY": "AIzaSyB8l4_t-7wN8UNYWpuJTYyM2TNFaudxCek",
     "JWT_KEY": "supersecret"
   }
